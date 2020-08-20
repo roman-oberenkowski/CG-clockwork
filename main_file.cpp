@@ -17,90 +17,17 @@
 
 unsigned int VAO;
 unsigned int VAO_square;
+unsigned int VAO_cube;
 unsigned int shaderProgram;
 unsigned int shaderProgram2;
+unsigned int texture1;
+unsigned int texture2;
 
 Shader *tut;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
-void initMyShaders(){
-	//Vertex shader-----------------------
-	const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	int  success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if(!success)
-	{
-    	glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-    	std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	//fragment shader -----------------------
-	const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(0.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\n\0";
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-	//Shader program---------------------
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-	//fragment shader two -----------------------
-	const char *fragmentShaderSource2 = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\n\0";
-	unsigned int fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
-    glCompileShader(fragmentShader2);
-    glGetShaderiv(fragmentShader2, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader2, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER2::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-	//Shader program two
-	shaderProgram2=glCreateProgram();
-	glAttachShader(shaderProgram2,vertexShader);
-	glAttachShader(shaderProgram2,fragmentShader2);
-	glLinkProgram(shaderProgram2);
-	glGetProgramiv(shaderProgram2, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram2, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER2::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-}
 
 
 //Error processing callback procedure
@@ -113,16 +40,16 @@ void initOpenGLProgram(GLFWwindow* window) {
 	tut=new Shader("shaders/tut.vs","shaders/tut.fs");
 	tut->use();
 	glClearColor(0.1,0.1,0.1,0.5);
-
-
-	unsigned int texture;
-	glGenTextures(1, &texture);  
-	glBindTexture(GL_TEXTURE_2D, texture);  
+	//texture1-----------------
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &texture1);  
+	glBindTexture(GL_TEXTURE_2D, texture1);  
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
+	stbi_set_flip_vertically_on_load(true);  
 	int width, height, nrChannels;
 	unsigned char *data = stbi_load("textures/wall.jpg", &width, &height, &nrChannels, 0); 
 	if (data)
@@ -135,7 +62,29 @@ void initOpenGLProgram(GLFWwindow* window) {
     	std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
-
+	//texture2-----------------
+	glActiveTexture(GL_TEXTURE1);
+	glGenTextures(1, &texture2);  
+	glBindTexture(GL_TEXTURE_2D, texture2);  
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	width, height, nrChannels;
+	data = stbi_load("textures/awesomeface.png", &width, &height, &nrChannels, 0); 
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+	tut->setInt("ourTexture1", 0); 
+	tut->setInt("ourTexture2", 1);
 
 	//right bottom triangle
 	glGenVertexArrays(1, &VAO);  
@@ -143,31 +92,25 @@ void initOpenGLProgram(GLFWwindow* window) {
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
 	float vertices[] = {
-		0.0f, -1.0f, 0.0f, 
-		1.0f, 0.0f,  0.0f,
-		1.0f, -1.0f, 0.0f
-	};
-
-	float texCords[] = {
-		0.0f, 0.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f
-
+		0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+		1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+		1.0f, -1.0f, 0.0f,  1.0f, 0.0f
 	};
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);  
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);  
-	
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3*sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 
 	//middle square
 	const float vertices_square[] ={
-		-0.5f, +0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f,
-		+0.5f, -0.5f, 0.0f,
-		+0.5f, +0.5f, 0.0f	
+		-0.5f, +0.5f, 0.0f, 0.0f,1.0f,				//top-left
+		-0.5f, -0.5f, 0.0f,	0.0f,0.0f,				//bot-left
+		+0.5f, -0.5f, 0.0f,	1.0f,0.0f,				//bot right
+		+0.5f, +0.5f, 0.0f,	1.0f,1.0f				//top right
 	};
 	const unsigned int indices_square[] ={
 		0,1,2,
@@ -185,9 +128,82 @@ void initOpenGLProgram(GLFWwindow* window) {
 	unsigned int VBO_square;
 	glGenBuffers(1,&VBO_square);
 	glBindBuffer(GL_ARRAY_BUFFER,VBO_square);
-	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices_square), vertices_square,GL_STATIC_DRAW );
-	glVertexAttribPointer(0,3, GL_FLOAT, GL_FALSE, 3* sizeof(float), (void*)0);
+	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices_square), vertices_square, GL_STATIC_DRAW );
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);  
+
+	//cube
+	float vertices_cube[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+	
+	glGenVertexArrays(1,&VAO_cube);
+	glBindVertexArray(VAO_cube);
+
+	unsigned int VBO_cube;
+	glGenBuffers(1,&VBO_cube);
+	glBindBuffer(GL_ARRAY_BUFFER,VBO_cube);
+	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices_cube), vertices_cube, GL_STATIC_DRAW);
+	glVertexAttribPointer(0,3, GL_FLOAT, GL_FALSE, 5* sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1,2,GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(3*sizeof(float)));
+	glEnableVertexAttribArray(1);
+	//matrices of the shader
+	int Loc;
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); 
+	Loc = glGetUniformLocation(tut->ID, "view");
+	glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(view));
+
+	glm::mat4 projection;
+	projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
+	Loc = glGetUniformLocation(tut->ID, "projection");
+	glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(projection));
+
+	glEnable(GL_DEPTH_TEST);  
+
 }
 
 //Release resources allocated by the program
@@ -196,34 +212,86 @@ void freeOpenGLProgram(GLFWwindow* window) {
 	
 }
 
+void drawTriangle(){
+	glm::mat4 trans; 
+	trans = glm::mat4(1.0f);
+	trans = glm::rotate(trans, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
+	trans = glm::translate(trans, glm::vec3(0.1f, 0.1f, 0.0f));
+	unsigned int transformLoc = glGetUniformLocation(tut->ID, "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void drawSquare(){
+	glm::mat4 model = glm::mat4(1.0f);
+	//model= glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f,0.0f,0.0f));
+	
+	//model = glm::rotate(trans, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
+	//model = glm::translate(model, glm::vec3(-0.4f, -0.3f, 0.0f));
+	//float val=(float)glfwGetTime();
+	//model=glm::scale(trans,glm::vec3(val,val,val));
+	
+	//send to shader
+	int modelLoc = glGetUniformLocation(tut->ID, "model");
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+	glBindVertexArray(VAO_square);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+void drawCube(){
+	glm::vec3 cubePositions[] = {
+		glm::vec3( 0.0f,  0.0f,  0.0f), 
+		glm::vec3( 2.0f,  5.0f, -15.0f), 
+		glm::vec3(-1.5f, -2.2f, -2.5f),  
+		glm::vec3(-3.8f, -2.0f, -12.3f),  
+		glm::vec3( 2.4f, -0.4f, -3.5f),  
+		glm::vec3(-1.7f,  3.0f, -7.5f),  
+		glm::vec3( 1.3f, -2.0f, -2.5f),  
+		glm::vec3( 1.5f,  2.0f, -2.5f), 
+		glm::vec3( 1.5f,  0.2f, -1.5f), 
+		glm::vec3(-1.3f,  1.0f, -1.5f)  
+	};
+	
+	glm::mat4 model = glm::mat4(1.0f);
+	//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));  
+
+	
+
+	glBindVertexArray(VAO_cube);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
+	for (int i=0;i<10;i++){
+		model=glm::mat4(1.0f);
+		model= glm::translate(model,cubePositions[i]);
+		float angle=20.0f*i;
+		if(i%3==0)model= glm::rotate(model,glm::radians(angle*float(glfwGetTime())), glm::vec3(0.2f,0.4f,0.9f));
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+		tut->setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0,36);
+	}
+}
+
+
+void activateTextures(){
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+}
+
 //Drawing procedure
 void drawScene(GLFWwindow* window) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	
-	float timeValue = glfwGetTime();
-	float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-	int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-	//glUseProgram(shaderProgram);
-	//glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-	tut->setFloat4("fsColor",0.0f, greenValue,0.0f,1.0f);
-	tut->setFloat("offset",-greenValue);
-	
-	//glUseProgram(shaderProgram);
-	glBindVertexArray(VAO);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-	//square
-	
-	glBindVertexArray(VAO_square);
-	//glUseProgram(shaderProgram2);
-	//glDrawArrays(GL_TRIANGLES,0,3);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//glDrawArrays(GL_TRIANGLES,3,3);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+	activateTextures();
+	//drawTriangle();
+	//drawSquare();
+	drawCube();
 	glfwSwapBuffers(window);
-	
 }
 
 int main(void)
