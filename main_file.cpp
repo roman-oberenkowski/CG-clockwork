@@ -22,12 +22,21 @@ unsigned int shaderProgram;
 unsigned int shaderProgram2;
 unsigned int texture1;
 unsigned int texture2;
+glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+float yaw=270,pitch=0,lastX,lastY;
+bool firstMouse=false;
+
+
 
 Shader *tut;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
-
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 
 //Error processing callback procedure
@@ -37,6 +46,8 @@ void error_callback(int error, const char* description) {
 
 //Initialization code procedure
 void initOpenGLProgram(GLFWwindow* window) {
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+	glfwSetCursorPosCallback(window, mouse_callback);  
 	tut=new Shader("shaders/tut.vs","shaders/tut.fs");
 	tut->use();
 	glClearColor(0.1,0.1,0.1,0.5);
@@ -191,15 +202,15 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glVertexAttribPointer(1,2,GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(3*sizeof(float)));
 	glEnableVertexAttribArray(1);
 	//matrices of the shader
-	int Loc;
-	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); 
-	Loc = glGetUniformLocation(tut->ID, "view");
-	glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(view));
+	
+	
+
+
+
 
 	glm::mat4 projection;
 	projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
-	Loc = glGetUniformLocation(tut->ID, "projection");
+	int Loc = glGetUniformLocation(tut->ID, "projection");
 	glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(projection));
 
 	glEnable(GL_DEPTH_TEST);  
@@ -286,12 +297,22 @@ void activateTextures(){
 
 //Drawing procedure
 void drawScene(GLFWwindow* window) {
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;  
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	const float radius = 10.0f;
+	float camX = sin(glfwGetTime()) * radius;
+	float camZ = cos(glfwGetTime()) * radius;
+	glm::mat4 view;
+	view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));  
+	//tut->setMat4("view",view);
 	activateTextures();
 	//drawTriangle();
 	//drawSquare();
 	drawCube();
 	glfwSwapBuffers(window);
+	//printf("%f %f\n",yaw,pitch);
 }
 
 int main(void)
@@ -333,6 +354,8 @@ int main(void)
 	while (!glfwWindowShouldClose(window)) //As long as the window shouldnt be closed yet...
 	{		
 		processInput(window);
+		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		tut->setMat4("view",view);
 		drawScene(window); //Execute drawing procedure
 		glfwPollEvents(); //Process callback procedures corresponding to the events that took place up to now
 	}
@@ -350,8 +373,62 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	bool debug_mouse=true;
+	static int mouseIgnoreCounter=0;
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+		yaw=270.0;
+		pitch=270.0;  
+    } 
+  
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; 
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+	
+    if(mouseIgnoreCounter>5){
+		yaw   += xoffset;
+    	pitch += yoffset;
+		if(debug_mouse)printf("[MouseDebug] Added %f, %f\n",xoffset,yoffset);
+	}
+	else{
+		mouseIgnoreCounter++;
+		if(debug_mouse)printf("[MouseDebug] Ignored\n");
+	}
+	firstMouse = false;
+    if(pitch > 89.0f)
+        pitch = 89.0f;
+    if(pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(direction);
+}  
+
 void processInput(GLFWwindow *window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+	float cameraSpeed = 2.5f * deltaTime;
+	
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
