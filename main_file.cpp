@@ -29,6 +29,7 @@ float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 float yaw=270,pitch=0,lastX,lastY;
 bool firstMouse=false;
+float Zoom=45.0;
 
 
 
@@ -37,7 +38,7 @@ Shader *tut;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 //Error processing callback procedure
 void error_callback(int error, const char* description) {
@@ -47,7 +48,8 @@ void error_callback(int error, const char* description) {
 //Initialization code procedure
 void initOpenGLProgram(GLFWwindow* window) {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
-	glfwSetCursorPosCallback(window, mouse_callback);  
+	glfwSetCursorPosCallback(window, mouse_callback); 
+	glfwSetScrollCallback(window, scroll_callback);  
 	tut=new Shader("shaders/tut.vs","shaders/tut.fs");
 	tut->use();
 	glClearColor(0.1,0.1,0.1,0.5);
@@ -208,10 +210,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 
 
-	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
-	int Loc = glGetUniformLocation(tut->ID, "projection");
-	glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(projection));
+	
 
 	glEnable(GL_DEPTH_TEST);  
 
@@ -356,6 +355,10 @@ int main(void)
 		processInput(window);
 		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		tut->setMat4("view",view);
+		glm::mat4 projection;
+		projection = glm::perspective(glm::radians(Zoom), 800.0f / 800.0f, 0.1f, 100.0f);
+		int Loc = glGetUniformLocation(tut->ID, "projection");
+		glUniformMatrix4fv(Loc, 1, GL_FALSE, glm::value_ptr(projection));
 		drawScene(window); //Execute drawing procedure
 		glfwPollEvents(); //Process callback procedures corresponding to the events that took place up to now
 	}
@@ -376,7 +379,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	bool debug_mouse=true;
+	bool debug_mouse=false;
 	static int mouseIgnoreCounter=0;
     if (firstMouse)
     {
@@ -422,13 +425,34 @@ void processInput(GLFWwindow *window)
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 	float cameraSpeed = 2.5f * deltaTime;
-	
+	bool enable_fps_camera=true;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
+        
+	   	if(enable_fps_camera) 
+		    cameraPos += cameraSpeed * glm::vec3(cameraFront[0],0.0,cameraFront[2]);
+		else 
+			cameraPos += cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
+        
+		if(enable_fps_camera)
+			cameraPos -= cameraSpeed * glm::vec3(cameraFront[0],0.0,cameraFront[2]);
+		else 
+		cameraPos -= cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		cameraPos += cameraUp * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		cameraPos += -cameraUp * cameraSpeed;
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    Zoom -= (float)yoffset;
+    if (Zoom < 1.0f)
+        Zoom = 1.0f;
+    if (Zoom > 45.0f)
+        Zoom = 45.0f; 
 }
