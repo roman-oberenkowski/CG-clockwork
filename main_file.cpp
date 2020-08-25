@@ -13,6 +13,7 @@
 #include "shader.h"
 #include "model.h"
 #include "stb_image.h"
+#include <unistd.h>
 
 using namespace std;
 unsigned int VAO_cube;
@@ -32,11 +33,15 @@ float lastFrame = 0.0f;
 Model *ourModel;
 Shader *tut;
 Shader *light;
+bool lightMoving=true;
+
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods);
 
 void error_callback(int error, const char* description) {
 	printf("[ErrorCallback]");
@@ -48,6 +53,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glClearColor(0.1,0.1,0.25,0.5);
 	glEnable(GL_DEPTH_TEST); 
 	//input setup
+	glfwSetKeyCallback(window,keyCallback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
 	glfwSetCursorPosCallback(window, mouse_callback); 
@@ -132,7 +138,16 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 }
 void drawCube(){
-	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+	static float x=1.2f,z=2.0f;
+	if(lightMoving){
+		x=sin(glfwGetTime());
+		z=cos(glfwGetTime());
+	}
+	//glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+	glm::vec3 lightPos(x, 0.5f, z);
+
+	tut->setVec3("lightPos", lightPos);  
 	glm::mat4 model;
 	model = glm::mat4(1.0f);
 	
@@ -140,6 +155,7 @@ void drawCube(){
 	tut->setVec3("objectColor", 1.0f, 0.5f, 0.31f);
 	tut->setVec3("lightColor",glm::vec3(1.0f,1.0f,1.0f));
 	tut->setMat4("model",model);
+	tut->setVec3("viewPos", cameraPos); 
 	glBindVertexArray(VAO_cube);
 	glDrawArrays(GL_TRIANGLES,0,36);
 	
@@ -234,6 +250,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
+    if (action==GLFW_PRESS) {
+        if (key==GLFW_KEY_C) 
+		lightMoving=!lightMoving;
+	}
 }
 
 
