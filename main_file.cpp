@@ -67,7 +67,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//textures setup
 	stbi_set_flip_vertically_on_load(true);
 	//model loading
-	ourModel = new Model("models/backpack/backpack.obj");
+	//ourModel = new Model("models/backpack/backpack.obj");
 	float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
      0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
@@ -140,8 +140,8 @@ void freeOpenGLProgram(GLFWwindow* window) {
 void drawCube(){
 	static float x=1.2f,z=2.0f;
 	if(lightMoving){
-		x=sin(glfwGetTime());
-		z=cos(glfwGetTime());
+		x=2*sin(glfwGetTime());
+		z=2*cos(glfwGetTime());
 	}
 	//glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
