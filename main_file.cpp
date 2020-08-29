@@ -50,7 +50,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	cam = new Camera();
     glfwSetCursorPosCallback(window, mouse_callback); 
 	glfwSetScrollCallback(window, scroll_callback);  
-
+vscodium://v
 	//drawing setup
 	glClearColor(0.1,0.1,0.25,0.5);
 	glEnable(GL_DEPTH_TEST); 
