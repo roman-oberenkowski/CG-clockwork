@@ -38,6 +38,7 @@ public:
     Model(string const &path, bool gamma = false) : gammaCorrection(gamma)
     {
         loadModel(path);
+        cout<<"[Model] number of meshed loaded: "<<meshes.size()<<"\n";
     }
 
     // draws the model, and thus all its meshes

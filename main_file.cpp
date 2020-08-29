@@ -67,7 +67,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//textures setup
 	stbi_set_flip_vertically_on_load(true);
 	//model loading
-	//ourModel = new Model("models/backpack/backpack.obj");
+	ourModel = new Model("models/backpack/backpack.obj");
 	float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
      0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
@@ -180,7 +180,7 @@ void drawScene(GLFWwindow* window) {
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));	// it's a bit too big for our scene, so scale it down
 	tut->use();
 	tut->setMat4("model", model);
-    //ourModel->Draw(*tut);
+    ourModel->Draw(*tut);
 	drawCube();
 	glfwSwapBuffers(window);
 }
