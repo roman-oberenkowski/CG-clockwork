@@ -93,43 +93,41 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 //Drawing procedure
 void drawScene(GLFWwindow* window) {
+	//time management
 	float currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;  
 
-	glm::mat4 model = glm::mat4(1.0f);
-    model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));	// it's a bit too big for our scene, so scale it down
-	
-	mainShader->use();
-	//mainShader->setMat4("model", model);
-    ourModel->Draw(*mainShader,model);
-
+	//LIGHT-----------
 	static float x=1.2f,z=2.0f;
 	if(lightMoving){
 		x=2*sin(glfwGetTime());
 		z=2*cos(glfwGetTime());
 	}
-	//glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-
 	glm::vec3 lightPos(x, 0.5f, z);
-
-	mainShader->setVec3("lightPos", lightPos);  
-
-	model = glm::mat4(1.0f);
-	
-	mainShader->use();
-	mainShader->setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-	mainShader->setVec3("lightColor",glm::vec3(1.0f,1.0f,1.0f));
-	mainShader->setMat4("model",model);
-	mainShader->setVec3("viewPos", cam->cameraPos); 
-	
+	//drawing light
+	glm::mat4 light_model_mat(1.0f);
 	light->use();
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, lightPos);
-	model = glm::scale(model, glm::vec3(0.2f)); 
-	light->setMat4("model",model);
+	light_model_mat = glm::mat4(1.0f);
+	light_model_mat = glm::translate(light_model_mat, lightPos);
+	light_model_mat = glm::scale(light_model_mat, glm::vec3(0.2f)); 
+	light->setMat4("model",light_model_mat);
 	glBindVertexArray(VAO_light);
 	glDrawArrays(GL_TRIANGLES,0,36);
+
+	//MODELS--------------
+	glm::mat4 model_mat_clock = glm::mat4(1.0f);
+    model_mat_clock = glm::scale(model_mat_clock, glm::vec3(2.0f, 2.0f, 2.0f));
+	//model_mat_clock = glm::rotate(model_mat_clock,glm::radians(float(glfwGetTime()*100)),glm::vec3(1.0f,0.0f,0.0f));
+
+	mainShader->use();
+	mainShader->setVec3("lightPos", lightPos);  
+	mainShader->setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+	mainShader->setVec3("lightColor",glm::vec3(1.0f,1.0f,1.0f));
+	//mainShader->setMat4("model",model_mat_clock); - not needed, becouse drawing each mesh sets model matrix
+	mainShader->setVec3("viewPos", cam->cameraPos); 
+
+    ourModel->Draw(*mainShader,model_mat_clock);
 	
 }
 
