@@ -23,6 +23,8 @@
 #include <vector>
 using namespace std;
 
+
+
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
 class Model 
@@ -42,19 +44,23 @@ public:
     }
 
     // draws the model, and thus all its meshes
-    void Draw(Shader &shader)
+    void Draw(Shader &shader,glm::mat4 &model)
     {
-        for(unsigned int i = 0; i < meshes.size(); i++)
-            meshes[i].Draw(shader);
+        for(unsigned int i = 0; i < meshes.size(); i++){
+            //printf("mesh drawed: %d\n",i);
+            meshes[i].Draw(shader,i,model);
+        }
+            
     }
     
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const &path)
     {
+        string const path_corrected="models/"+path+"/"+path+".obj";
         // read file via ASSIMP
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+        const aiScene* scene = importer.ReadFile(path_corrected, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
         // check for errors
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
         {

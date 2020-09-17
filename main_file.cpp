@@ -26,31 +26,29 @@ unsigned int shaderProgram2;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+glm::vec3 positioningVar;
 
 Model *ourModel;
 Shader *mainShader;
 Shader *light;
 Camera *cam;
 bool lightMoving=true;
+int positioningMode=1;
 
-
-
+//definitions
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods);
 void processInput(GLFWwindow *window);
 void error_callback(int error, const char* description);
+void freeOpenGLProgram(GLFWwindow* window);
 
-
-
-
-
+//init
 void initOpenGLProgram(GLFWwindow* window) {
 	cam = new Camera();
     glfwSetCursorPosCallback(window, mouse_callback); 
 	glfwSetScrollCallback(window, scroll_callback);  
-vscodium://v
 	//drawing setup
 	glClearColor(0.1,0.1,0.25,0.5);
 	glEnable(GL_DEPTH_TEST); 
@@ -58,7 +56,8 @@ vscodium://v
 	glfwSetKeyCallback(window,keyCallback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
-	
+	//positioning stuff
+	positioningVar=glm::vec3(0.0f,0.0f,0.0f);
 	
 	//shader setup
 	mainShader = new Shader("shaders/colorTex_v.glsl","shaders/colorTex_f.glsl");
@@ -68,7 +67,7 @@ vscodium://v
 	//textures setup
 	stbi_set_flip_vertically_on_load(true);
 	//model loading
-	ourModel = new Model("models/gear2/gear2.obj");
+	ourModel = new Model("clock02");
 	
 	glGenVertexArrays(1,&VAO_cube);
 	glBindVertexArray(VAO_cube);
@@ -92,56 +91,43 @@ vscodium://v
 	glEnableVertexAttribArray(0);
 }
 
+//Drawing procedure
+void drawScene(GLFWwindow* window) {
+	//time management
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;  
 
-void freeOpenGLProgram(GLFWwindow* window) {
-
-}
-void drawCube(){
+	//LIGHT-----------
 	static float x=1.2f,z=2.0f;
 	if(lightMoving){
 		x=2*sin(glfwGetTime());
 		z=2*cos(glfwGetTime());
 	}
-	//glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-
 	glm::vec3 lightPos(x, 0.5f, z);
-
-	mainShader->setVec3("lightPos", lightPos);  
-	glm::mat4 model;
-	model = glm::mat4(1.0f);
-	
-	mainShader->use();
-	mainShader->setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-	mainShader->setVec3("lightColor",glm::vec3(1.0f,1.0f,1.0f));
-	mainShader->setMat4("model",model);
-	mainShader->setVec3("viewPos", cam->cameraPos); 
-	glBindVertexArray(VAO_cube);
-	//glDrawArrays(GL_TRIANGLES,0,36);
-	
+	//drawing light
+	glm::mat4 light_model_mat(1.0f);
 	light->use();
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, lightPos);
-	model = glm::scale(model, glm::vec3(0.2f)); 
-	light->setMat4("model",model);
+	light_model_mat = glm::mat4(1.0f);
+	light_model_mat = glm::translate(light_model_mat, lightPos);
+	light_model_mat = glm::scale(light_model_mat, glm::vec3(0.2f)); 
+	light->setMat4("model",light_model_mat);
 	glBindVertexArray(VAO_light);
 	glDrawArrays(GL_TRIANGLES,0,36);
 
-}
-//Drawing procedure
-void drawScene(GLFWwindow* window) {
-	
-	
-	float currentFrame = glfwGetTime();
-	deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;  
+	//MODELS--------------
+	glm::mat4 model_mat_clock = glm::mat4(1.0f);
+    model_mat_clock = glm::scale(model_mat_clock, glm::vec3(2.0f, 2.0f, 2.0f));
+	//model_mat_clock = glm::rotate(model_mat_clock,glm::radians(float(glfwGetTime()*100)),glm::vec3(1.0f,0.0f,0.0f));
 
-	glm::mat4 model = glm::mat4(1.0f);
-    model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));	// it's a bit too big for our scene, so scale it down
 	mainShader->use();
-	mainShader->setMat4("model", model);
-    ourModel->Draw(*mainShader);
+	mainShader->setVec3("lightPos", lightPos);  
+	mainShader->setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+	mainShader->setVec3("lightColor",glm::vec3(1.0f,1.0f,1.0f));
+	//mainShader->setMat4("model",model_mat_clock); - not needed, becouse drawing each mesh sets model matrix
+	mainShader->setVec3("viewPos", cam->cameraPos); 
 
-	drawCube();
+    ourModel->Draw(*mainShader,model_mat_clock);
 	
 }
 
@@ -180,8 +166,7 @@ int main(void)
 	//Main application loop
 	while (!glfwWindowShouldClose(window)) //As long as the window shouldnt be closed yet...
 	{		
-		processInput(window);
-
+		//prepare - need  to set view and projection matrix for each shader.
 		glm::mat4 view = glm::lookAt(cam->cameraPos, cam->cameraPos + cam->cameraFront, cam->cameraUp);
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(cam->Zoom), 800.0f / 800.0f, 0.1f, 100.0f);
@@ -189,13 +174,16 @@ int main(void)
 		mainShader->use();
 		mainShader->setMat4("projection",projection);
 		mainShader->setMat4("view",view);
+		
 		light->use();
 		light->setMat4("projection",projection);
 		light->setMat4("view",view);
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		drawScene(window);
 		glfwSwapBuffers(window);
 		glfwPollEvents(); //Process callback procedures corresponding to the events that took place up to now
+		processInput(window);
 	}
 	freeOpenGLProgram(window);
 
@@ -215,7 +203,15 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
     if (action==GLFW_PRESS) {
         if (key==GLFW_KEY_C) 
 		lightMoving=!lightMoving;
+		if (key==GLFW_KEY_P){
+			positioningMode=(positioningMode+1)%4;
+			printf("Current Positioning Mode -> %d\n",positioningMode);
+		}
+		if (key==GLFW_KEY_0){
+			positioningVar[positioningMode-1]=0;
+		}
 	}
+
 }
 
 void processInput(GLFWwindow *window)
@@ -237,5 +233,26 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 	cam->mouse_callback(window, xpos, ypos);
 }
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
-	cam->scroll_callback(window, xoffset,yoffset);
+	if(!positioningMode)
+		cam->scroll_callback(window, xoffset,yoffset);
+	else{
+		
+		switch(positioningMode){
+			case 1: 
+				positioningVar[0]+=yoffset/300.0;
+				break;
+			case 2:
+				positioningVar[1]+=yoffset/300.0;
+				break;
+			case 3:
+				positioningVar[2]+=yoffset/300.0;
+				break;
+		}
+
+		printf("PosVar: %f \t%f \t%f\t \n",positioningVar[0],positioningVar[1],positioningVar[2]);
+	}
+}
+
+void freeOpenGLProgram(GLFWwindow* window) {
+
 }

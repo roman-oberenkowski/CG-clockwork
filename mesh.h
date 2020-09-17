@@ -5,8 +5,13 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "shader.h"
+
+extern glm::vec3 positioningVar;
 
 using namespace std;
 
@@ -49,7 +54,7 @@ public:
     }
 
     // render the mesh
-    void Draw(Shader &shader) 
+    void Draw(Shader &shader,int id,glm::mat4 &model2) 
     {
         // bind appropriate textures
         unsigned int diffuseNr  = 1;
@@ -57,6 +62,7 @@ public:
         unsigned int normalNr   = 1;
         unsigned int heightNr   = 1;
         
+        // bind every textures
         for(unsigned int i = 0; i < textures.size(); i++)
         {
             glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
@@ -76,6 +82,17 @@ public:
             glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        }
+        //prepare shader + transformations
+        glm::mat4 model=model2;
+        if(id==1){
+            glm::vec3 needed_move=glm::vec3(-0.0033333,-1.263332,0.0);
+            model = glm::translate(model, -needed_move);
+            model = glm::rotate(model, glm::radians(float(glfwGetTime()*100)), glm::vec3(0.0f,0.0f,1.0f));
+            model = glm::translate(model, needed_move);
+            shader.setMat4("model",model);
+        }else{
+            shader.setMat4("model",model2);
         }
         
         // draw mesh
