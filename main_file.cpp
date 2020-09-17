@@ -33,24 +33,20 @@ Shader *light;
 Camera *cam;
 bool lightMoving=true;
 
-
-
+//definitions
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods);
 void processInput(GLFWwindow *window);
 void error_callback(int error, const char* description);
+void freeOpenGLProgram(GLFWwindow* window);
 
-
-
-
-
+//init
 void initOpenGLProgram(GLFWwindow* window) {
 	cam = new Camera();
     glfwSetCursorPosCallback(window, mouse_callback); 
 	glfwSetScrollCallback(window, scroll_callback);  
-vscodium://v
 	//drawing setup
 	glClearColor(0.1,0.1,0.25,0.5);
 	glEnable(GL_DEPTH_TEST); 
@@ -92,11 +88,19 @@ vscodium://v
 	glEnableVertexAttribArray(0);
 }
 
+//Drawing procedure
+void drawScene(GLFWwindow* window) {
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;  
 
-void freeOpenGLProgram(GLFWwindow* window) {
+	glm::mat4 model = glm::mat4(1.0f);
+    model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));	// it's a bit too big for our scene, so scale it down
+	
+	mainShader->use();
+	mainShader->setMat4("model", model);
+    ourModel->Draw(*mainShader);
 
-}
-void drawCube(){
 	static float x=1.2f,z=2.0f;
 	if(lightMoving){
 		x=2*sin(glfwGetTime());
@@ -107,7 +111,7 @@ void drawCube(){
 	glm::vec3 lightPos(x, 0.5f, z);
 
 	mainShader->setVec3("lightPos", lightPos);  
-	glm::mat4 model;
+
 	model = glm::mat4(1.0f);
 	
 	mainShader->use();
@@ -125,23 +129,6 @@ void drawCube(){
 	light->setMat4("model",model);
 	glBindVertexArray(VAO_light);
 	glDrawArrays(GL_TRIANGLES,0,36);
-
-}
-//Drawing procedure
-void drawScene(GLFWwindow* window) {
-	
-	
-	float currentFrame = glfwGetTime();
-	deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;  
-
-	glm::mat4 model = glm::mat4(1.0f);
-    model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));	// it's a bit too big for our scene, so scale it down
-	mainShader->use();
-	mainShader->setMat4("model", model);
-    ourModel->Draw(*mainShader);
-
-	drawCube();
 	
 }
 
@@ -180,8 +167,7 @@ int main(void)
 	//Main application loop
 	while (!glfwWindowShouldClose(window)) //As long as the window shouldnt be closed yet...
 	{		
-		processInput(window);
-
+		//prepare - need  to set view and projection matrix for each shader.
 		glm::mat4 view = glm::lookAt(cam->cameraPos, cam->cameraPos + cam->cameraFront, cam->cameraUp);
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(cam->Zoom), 800.0f / 800.0f, 0.1f, 100.0f);
@@ -189,13 +175,16 @@ int main(void)
 		mainShader->use();
 		mainShader->setMat4("projection",projection);
 		mainShader->setMat4("view",view);
+		
 		light->use();
 		light->setMat4("projection",projection);
 		light->setMat4("view",view);
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		drawScene(window);
 		glfwSwapBuffers(window);
 		glfwPollEvents(); //Process callback procedures corresponding to the events that took place up to now
+		processInput(window);
 	}
 	freeOpenGLProgram(window);
 
@@ -238,4 +227,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 }
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 	cam->scroll_callback(window, xoffset,yoffset);
+}
+
+void freeOpenGLProgram(GLFWwindow* window) {
+
 }
