@@ -23,6 +23,8 @@
 #include <vector>
 using namespace std;
 
+
+
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
 class Model 
@@ -42,11 +44,11 @@ public:
     }
 
     // draws the model, and thus all its meshes
-    void Draw(Shader &shader)
+    void Draw(Shader &shader,glm::mat4 &model)
     {
         for(unsigned int i = 0; i < meshes.size(); i++){
-            printf("mesh drawed: %d\n",i);
-            meshes[i].Draw(shader,i);
+            //printf("mesh drawed: %d\n",i);
+            meshes[i].Draw(shader,i,model);
         }
             
     }
