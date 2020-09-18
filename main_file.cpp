@@ -121,7 +121,7 @@ void drawScene(GLFWwindow* window) {
 
 	//MODELS--------------
 	glm::mat4 model_mat_clock = glm::mat4(1.0f);
-    //model_mat_clock = glm::scale(model_mat_clock, glm::vec3(2.0f, 2.0f, 2.0f));
+    model_mat_clock = glm::scale(model_mat_clock, glm::vec3(2.0f, 2.0f, 2.0f));
 	//model_mat_clock = glm::rotate(model_mat_clock,glm::radians(float(glfwGetTime()*100)),glm::vec3(1.0f,0.0f,0.0f));
 
 	mainShader->use();
