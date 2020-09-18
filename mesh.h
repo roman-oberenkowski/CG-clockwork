@@ -13,6 +13,7 @@
 
 extern glm::vec3 positioningVar;
 extern int chooseVar;
+extern glm::mat4 getModelMatrix(int id);
 
 using namespace std;
 
@@ -57,6 +58,7 @@ public:
     // render the mesh
     void Draw(Shader &shader,int id,glm::mat4 &model2) 
     {
+        if(id==4)return;
         // bind appropriate textures
         unsigned int diffuseNr  = 1;
         unsigned int specularNr = 1;
@@ -85,16 +87,14 @@ public:
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
         //prepare shader + transformations
-        glm::mat4 model=model2;
-        if(id==chooseVar){
-            glm::vec3 needed_move=glm::vec3(-0.0033333,-1.263332,0.0);
-            model = glm::translate(model, -positioningVar);
-            model = glm::rotate(model, glm::radians(float(glfwGetTime()*100)), glm::vec3(0.0f,0.0f,1.0f));
-            model = glm::translate(model, positioningVar);
-            shader.setMat4("model",model);
-        }else{
-            shader.setMat4("model",model2);
-        }
+        //if(id==chooseVar){
+            shader.setMat4("model",getModelMatrix(id));
+        //}
+        //else
+        //{
+          //  shader.setMat4("model",model2);
+///}
+       // /
         
         // draw mesh
         glBindVertexArray(VAO);

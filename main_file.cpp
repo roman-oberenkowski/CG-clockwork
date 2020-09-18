@@ -53,7 +53,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//drawing setup
 	glClearColor(0.1,0.1,0.25,0.5);
 	glEnable(GL_DEPTH_TEST); 
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 
 
 	//input setup
@@ -71,7 +71,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//textures setup
 	stbi_set_flip_vertically_on_load(true);
 	//model loading
-	ourModel = new Model("clock03");
+	ourModel = new Model("clockfinal2");
 	
 	glGenVertexArrays(1,&VAO_cube);
 	glBindVertexArray(VAO_cube);
@@ -245,13 +245,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 		
 		switch(positioningMode){
 			case 1: 
-				positioningVar[0]+=yoffset/300.0;
+				positioningVar[0]+=yoffset/20.0;
 				break;
 			case 2:
-				positioningVar[1]+=yoffset/300.0;
+				positioningVar[1]+=yoffset/2.0;
 				break;
 			case 3:
-				positioningVar[2]+=yoffset/300.0;
+				positioningVar[2]+=yoffset*100;
 				break;
 		}
 
@@ -261,4 +261,91 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 
 void freeOpenGLProgram(GLFWwindow* window) {
 
+}
+enum ID {
+	id_hour_hand=7,
+	id_minute_hand=8,
+	id_pendulum_hand=10,
+	id_pendulum_sphere=9,
+	id_pendulum_grab=0,
+	id_gearwheel_minutes=12,
+	id_gearwheel_minutes_mini=11,
+	id_gearwheel_minutes_support=13,
+	id_gearwheel_minutes_support_mini=14,
+	id_gearwheel_hours=19,
+	id_gearwheel_hours_support=17,
+	id_gearwheel_hours_support_mini=18,
+	id_gearwheel_seconds=15,
+	id_gearwheel_seconds_mini=16,
+};
+
+glm::mat4 getModelMatrix(int id){
+	glm::mat4 model(1.0f);
+	glm::vec3 rotationAxis(1000.0f,0.0f,0.0f);
+	switch(id){
+		case id_gearwheel_hours:
+		case id_gearwheel_minutes_mini:
+		case id_gearwheel_minutes:
+		case id_hour_hand:
+		case id_minute_hand:
+		rotationAxis=glm::vec3(0.005149f,1.5634f,0.0f);
+		break;
+		case id_pendulum_hand:
+		case id_pendulum_sphere:
+		case id_pendulum_grab:
+		rotationAxis=glm::vec3(0.000867f,1.7279f,0.0f);
+		break;
+		case id_gearwheel_hours_support:
+		case id_gearwheel_hours_support_mini:
+		rotationAxis=glm::vec3(0.094592f,1.4969f,0.0f);
+		break;
+		case id_gearwheel_seconds:
+		case id_gearwheel_seconds_mini:
+		rotationAxis=glm::vec3(0.11664f,1.6193f,0.0f);
+		break;
+		case id_gearwheel_minutes_support:
+		case id_gearwheel_minutes_support_mini:
+		rotationAxis=glm::vec3(0.13938f,1.4255f,0.0f);
+		break;
+	}
+	if(rotationAxis.x>100)
+		return model;
+	else{
+		float time=float(glfwGetTime()/300);
+		float degrees=0;
+		switch(id){
+			case id_gearwheel_seconds:
+			case id_gearwheel_seconds_mini:
+			degrees=time*2160;
+			break;
+			case id_gearwheel_minutes_support:
+			case id_gearwheel_minutes_support_mini:
+			degrees=-time*900;
+			break;
+			case id_gearwheel_minutes:
+			case id_gearwheel_minutes_mini:
+			case id_minute_hand:
+			degrees=time*360;
+			break;
+			case id_gearwheel_hours_support:
+			case id_gearwheel_hours_support_mini:
+			degrees=-time*100;
+			break;
+			case id_gearwheel_hours:
+			case id_hour_hand:
+			degrees=time*30;
+			break;
+			case id_pendulum_hand:
+			case id_pendulum_sphere:
+			degrees=-14*cos(PI*time*300);
+			break;
+			case id_pendulum_grab:
+			degrees=-14*cos(PI*time*300)+13.5f;
+
+		}
+		model = glm::translate(model, rotationAxis);
+		model = glm::rotate(model, glm::radians(degrees), glm::vec3(0.0f,0.0f,1.0f));
+		model = glm::translate(model, -rotationAxis);
+		return model;
+	}
 }

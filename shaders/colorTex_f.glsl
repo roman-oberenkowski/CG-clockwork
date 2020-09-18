@@ -29,9 +29,10 @@ void main()
     vec3 specular = specularStrength * spec  * lightColor;  
 
     //vec3 result = (ambient + diffuse + specular) * objectColor;
-    //vec3 result = (ambient + diffuse + specular) * vec3(1.0f,0.5f,0.8f);//texture(texture_diffuse1,TexCoords).xyz;
+
+    vec3 result = (ambient + diffuse + specular) * vec3(1.0f,0.5f,0.8f);//texture(texture_diffuse1,TexCoords).xyz;
     //vec3 result = (ambient + diffuse + specular) * (vec3(0.0f,0.1f,0.5f)+ texture(texture_diffuse1,TexCoords).xyz);
-    vec3 result = (ambient + diffuse + specular) * texture(texture_diffuse1,TexCoords).xyz;
+    //vec3 result = (ambient + diffuse + specular) * texture(texture_diffuse1,TexCoords).xyz;
     
     FragColor = vec4(result, 1.0);
 
