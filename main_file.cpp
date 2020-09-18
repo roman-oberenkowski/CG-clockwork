@@ -53,6 +53,9 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//drawing setup
 	glClearColor(0.1,0.1,0.25,0.5);
 	glEnable(GL_DEPTH_TEST); 
+	glEnable(GL_CULL_FACE);
+
+
 	//input setup
 	glfwSetKeyCallback(window,keyCallback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);

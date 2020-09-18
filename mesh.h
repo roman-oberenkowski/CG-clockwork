@@ -88,9 +88,9 @@ public:
         glm::mat4 model=model2;
         if(id==chooseVar){
             glm::vec3 needed_move=glm::vec3(-0.0033333,-1.263332,0.0);
-            model = glm::translate(model, -needed_move);
+            model = glm::translate(model, -positioningVar);
             model = glm::rotate(model, glm::radians(float(glfwGetTime()*100)), glm::vec3(0.0f,0.0f,1.0f));
-            model = glm::translate(model, needed_move);
+            model = glm::translate(model, positioningVar);
             shader.setMat4("model",model);
         }else{
             shader.setMat4("model",model2);
