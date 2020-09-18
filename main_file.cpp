@@ -27,6 +27,7 @@ unsigned int shaderProgram2;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 glm::vec3 positioningVar;
+int chooseVar=0;
 
 Model *ourModel;
 Shader *mainShader;
@@ -67,7 +68,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//textures setup
 	stbi_set_flip_vertically_on_load(true);
 	//model loading
-	ourModel = new Model("clock02");
+	ourModel = new Model("clock03");
 	
 	glGenVertexArrays(1,&VAO_cube);
 	glBindVertexArray(VAO_cube);
@@ -117,7 +118,7 @@ void drawScene(GLFWwindow* window) {
 
 	//MODELS--------------
 	glm::mat4 model_mat_clock = glm::mat4(1.0f);
-    model_mat_clock = glm::scale(model_mat_clock, glm::vec3(2.0f, 2.0f, 2.0f));
+    //model_mat_clock = glm::scale(model_mat_clock, glm::vec3(2.0f, 2.0f, 2.0f));
 	//model_mat_clock = glm::rotate(model_mat_clock,glm::radians(float(glfwGetTime()*100)),glm::vec3(1.0f,0.0f,0.0f));
 
 	mainShader->use();
@@ -210,6 +211,8 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
 		if (key==GLFW_KEY_0){
 			positioningVar[positioningMode-1]=0;
 		}
+		if(key==GLFW_KEY_INSERT){chooseVar++;printf("Choice: %d\n",chooseVar);};
+		if(key==GLFW_KEY_HOME){chooseVar--;printf("Choice: %d\n",chooseVar);};
 	}
 
 }
