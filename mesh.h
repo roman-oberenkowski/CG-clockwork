@@ -12,6 +12,7 @@
 #include "shader.h"
 
 extern glm::vec3 positioningVar;
+extern int chooseVar;
 
 using namespace std;
 
@@ -85,7 +86,7 @@ public:
         }
         //prepare shader + transformations
         glm::mat4 model=model2;
-        if(id==1){
+        if(id==chooseVar){
             glm::vec3 needed_move=glm::vec3(-0.0033333,-1.263332,0.0);
             model = glm::translate(model, -needed_move);
             model = glm::rotate(model, glm::radians(float(glfwGetTime()*100)), glm::vec3(0.0f,0.0f,1.0f));
