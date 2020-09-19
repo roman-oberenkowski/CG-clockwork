@@ -58,7 +58,7 @@ public:
     // render the mesh
     void Draw(Shader &shader,int id,glm::mat4 &model2) 
     {
-        if(id==4)return;
+        if(id==4||id==10)return;
         // bind appropriate textures
         unsigned int diffuseNr  = 1;
         unsigned int specularNr = 1;
