@@ -29,6 +29,7 @@ float lastFrame = 0.0f;
 glm::vec3 positioningVar;
 int chooseVar=0;
 int timeSpeedVar=0;
+bool is_box_drawn=true;
 
 Model *ourModel;
 Shader *mainShader;
@@ -223,6 +224,7 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
 		if(key==GLFW_KEY_4)timeSpeedVar=4;
 		if(key==GLFW_KEY_5)timeSpeedVar=5;
 		if(key==GLFW_KEY_6)timeSpeedVar=6;
+		if(key==GLFW_KEY_B)is_box_drawn=!is_box_drawn;
 	}
 
 }
@@ -326,48 +328,49 @@ glm::mat4 getModelMatrix(int id){
 		float degrees=0;
 		float pendulum_t=12.0f;
 		float pendulum_phase=-7.55;
+		float dtime;
+		float ctime;
+		dtime=fmod(time,12);
+		ctime=time-dtime;
+		float degrees_gearwheel_seconds=-( 2.0*ctime+2.0*fmin(dtime*2.0,6)-6.6999f);
 		switch(id){
 			case id_gearwheel_seconds:
 			case id_gearwheel_seconds_mini:
-			//degrees=fmax(10*pow(sin(time*1000),2),double(0.0));
-			
-		
-			//time=fmod(time,12);
-			//degrees=2.5*fmin(time*2.5,6)+positioningVar.x;
-			degrees=-time;
+
+			degrees=degrees_gearwheel_seconds;
 			break;
 			//8:64
 			case id_gearwheel_minutes_support:
 			case id_gearwheel_minutes_support_mini:
-			degrees=time/8;
+			degrees=-degrees_gearwheel_seconds/8;
 			break;
 			//8:64
 			case id_gearwheel_minutes:
 			case id_gearwheel_minutes_mini:
 			case id_minute_hand:
-			degrees=-time/8/8;
+			degrees=degrees_gearwheel_seconds/8/8;
 			break;
 			//10:30
 			case id_gearwheel_hours_support:
 			case id_gearwheel_hours_support_mini:
-			degrees=time/8/8/3;
+			degrees=-degrees_gearwheel_seconds/8/8/3;
 			break;
 			//8:30
 			case id_gearwheel_hours:
 			case id_hour_hand:
-			degrees=-time/8/3/30;
+			degrees=degrees_gearwheel_seconds/8/3/30;
 			break;
 			case id_pendulum_hand:
 			case id_pendulum_sphere:
-			degrees=-positioningVar.y*cos(PI*time/pendulum_t+pendulum_phase);
+			degrees=-9.0f*cos(PI*time/pendulum_t+pendulum_phase);
 			break;
 			case id_pendulum_grab:
-			degrees=-positioningVar.y*cos(PI*time/pendulum_t+pendulum_phase)+14.0f;
+			degrees=-9.0f*cos(PI*time/pendulum_t+pendulum_phase)+14.0f;
 
 		}
 		model = glm::translate(model, rotationAxis);
 		model = glm::rotate(model, glm::radians(degrees), glm::vec3(0.0f,0.0f,1.0f));
-		if(id==id_pendulum_grab)model= glm::scale(model,glm::vec3(float(0.85f)));
+		if(id==id_pendulum_grab)model= glm::scale(model,glm::vec3(float(0.9f)));
 		model = glm::translate(model, -rotationAxis);
 		return model;
 	}

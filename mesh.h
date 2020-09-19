@@ -14,6 +14,7 @@
 extern glm::vec3 positioningVar;
 extern int chooseVar;
 extern glm::mat4 getModelMatrix(int id);
+extern bool is_box_drawn;
 
 using namespace std;
 
@@ -58,7 +59,7 @@ public:
     // render the mesh
     void Draw(Shader &shader,int id,glm::mat4 &model2) 
     {
-        if(id==4||id==10)return;
+        if(id==4 && !is_box_drawn)return;
         // bind appropriate textures
         unsigned int diffuseNr  = 1;
         unsigned int specularNr = 1;
