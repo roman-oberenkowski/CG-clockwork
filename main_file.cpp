@@ -180,7 +180,7 @@ int main(void)
 		//prepare - need  to set view and projection matrix for each shader.
 		glm::mat4 view = glm::lookAt(cam->cameraPos, cam->cameraPos + cam->cameraFront, cam->cameraUp);
 		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(cam->Zoom), cam->aspectRatio, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(cam->Zoom), cam->aspectRatio, 0.15f, 100.0f);
 		
 		mainShader->use();
 		mainShader->setMat4("projection",projection);
