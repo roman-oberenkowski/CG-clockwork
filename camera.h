@@ -15,13 +15,14 @@ public:
     float pitch=0;
     float lastX;
     float lastY;
+    float aspectRatio;
     bool firstMouse=false;
     float Zoom=45.0;
+    int mouseIgnoreCounter=0;
     
     void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     {
         bool debug_mouse=false;
-        static int mouseIgnoreCounter=0;
         if (firstMouse)
         {
             lastX = xpos;

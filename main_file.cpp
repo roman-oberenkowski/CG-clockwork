@@ -31,6 +31,7 @@ glm::vec3 positioningVar;
 int chooseVar=0;
 int timeSpeedVar=0;
 bool is_box_drawn=true;
+bool grabCursor=true;
 
 Model *ourModel;
 Shader *mainShader;
@@ -51,6 +52,9 @@ void freeOpenGLProgram(GLFWwindow* window);
 //init
 void initOpenGLProgram(GLFWwindow* window) {
 	cam = new Camera();
+	int width, height;
+	glfwGetWindowSize(window,&width, &height);
+	cam->aspectRatio=width/float(height);
     glfwSetCursorPosCallback(window, mouse_callback); 
 	glfwSetScrollCallback(window, scroll_callback);  
 	//drawing setup
@@ -151,7 +155,7 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(500, 500, "OpenGL CLOCK RO WG", NULL, NULL);  //Create a window 500pxx500px titled "OpenGL" and an OpenGL context associated with it. 
+	window = glfwCreateWindow(800, 800, "OpenGL CLOCK RO WG", NULL, NULL);  //Create a window 500pxx500px titled "OpenGL" and an OpenGL context associated with it. 
 
 	if (!window) //If no window is opened then close the program
 	{
@@ -176,7 +180,7 @@ int main(void)
 		//prepare - need  to set view and projection matrix for each shader.
 		glm::mat4 view = glm::lookAt(cam->cameraPos, cam->cameraPos + cam->cameraFront, cam->cameraUp);
 		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(cam->Zoom), 800.0f / 800.0f, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(cam->Zoom), cam->aspectRatio, 0.1f, 100.0f);
 		
 		mainShader->use();
 		mainShader->setMat4("projection",projection);
@@ -203,7 +207,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
+    
+	glViewport(0, 0, width, height);
+	cam->aspectRatio=float(width)/height;
 }
 
 void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
@@ -224,6 +230,18 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
 		if(key==GLFW_KEY_4)timeSpeedVar=3;
 		if(key==GLFW_KEY_F1)clockTime=0;
 		if(key==GLFW_KEY_B)is_box_drawn=!is_box_drawn;
+		if(key==GLFW_KEY_END){
+			if(grabCursor){
+				grabCursor=false;
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  
+			}
+			else{
+				grabCursor=true;
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				cam->mouseIgnoreCounter=0;  
+			}
+		}
+	
 	}
 
 }
@@ -244,7 +262,7 @@ void error_callback(int error, const char* description) {
 
 //redirection to cam class
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-	cam->mouse_callback(window, xpos, ypos);
+	if(grabCursor)cam->mouse_callback(window, xpos, ypos);
 }
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 	if(!positioningMode)
