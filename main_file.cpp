@@ -26,6 +26,7 @@ unsigned int shaderProgram2;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+double clockTime=0.0f;
 glm::vec3 positioningVar;
 int chooseVar=0;
 int timeSpeedVar=0;
@@ -213,17 +214,15 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
 			positioningMode=(positioningMode+1)%4;
 			printf("Current Positioning Mode -> %d\n",positioningMode);
 		}
-		if (key==GLFW_KEY_0){
-			timeSpeedVar=0.5;
-		}
+		
 		if(key==GLFW_KEY_INSERT){chooseVar++;printf("Choice: %d\n",chooseVar);};
 		if(key==GLFW_KEY_HOME){chooseVar--;printf("Choice: %d\n",chooseVar);};
-		if(key==GLFW_KEY_1)timeSpeedVar=1;
-		if(key==GLFW_KEY_2)timeSpeedVar=2;
-		if(key==GLFW_KEY_3)timeSpeedVar=3;
-		if(key==GLFW_KEY_4)timeSpeedVar=4;
-		if(key==GLFW_KEY_5)timeSpeedVar=5;
-		if(key==GLFW_KEY_6)timeSpeedVar=6;
+		if (key==GLFW_KEY_0)timeSpeedVar=-1;
+		if (key==GLFW_KEY_1)timeSpeedVar=0.0;
+		if(key==GLFW_KEY_2)timeSpeedVar=1;
+		if(key==GLFW_KEY_3)timeSpeedVar=2;
+		if(key==GLFW_KEY_4)timeSpeedVar=3;
+		if(key==GLFW_KEY_F1)clockTime=0;
 		if(key==GLFW_KEY_B)is_box_drawn=!is_box_drawn;
 	}
 
@@ -324,15 +323,19 @@ glm::mat4 getModelMatrix(int id){
 	if(rotationAxis.x>100)
 		return model;
 	else{
-		float time=float(glfwGetTime()*2*pow(10,timeSpeedVar));
+		const float pendulum_t=12.0f;
+		const float pendulum_phase=-7.55;
+		const float pendulum_grab_shift=14.0f;
+		const float gearwheel_phase=-6.6999f;
+		clockTime+=float(deltaTime*2*pow(10,timeSpeedVar));
+		
 		float degrees=0;
-		float pendulum_t=12.0f;
-		float pendulum_phase=-7.55;
-		float dtime;
-		float ctime;
-		dtime=fmod(time,12);
-		ctime=time-dtime;
-		float degrees_gearwheel_seconds=-( 2.0*ctime+2.0*fmin(dtime*2.0,6)-6.6999f);
+		float preciseTime;
+		float coarseTime;
+		preciseTime=fmod(clockTime,12);
+		coarseTime=clockTime-preciseTime;
+		float degrees_gearwheel_seconds=-( coarseTime+2.0*fmin(preciseTime*2.0,6)+gearwheel_phase);
+
 		switch(id){
 			case id_gearwheel_seconds:
 			case id_gearwheel_seconds_mini:
@@ -349,6 +352,7 @@ glm::mat4 getModelMatrix(int id){
 			case id_gearwheel_minutes_mini:
 			case id_minute_hand:
 			degrees=degrees_gearwheel_seconds/8/8;
+			if(id_minute_hand)degrees+=90;
 			break;
 			//10:30
 			case id_gearwheel_hours_support:
@@ -362,10 +366,10 @@ glm::mat4 getModelMatrix(int id){
 			break;
 			case id_pendulum_hand:
 			case id_pendulum_sphere:
-			degrees=-9.0f*cos(PI*time/pendulum_t+pendulum_phase);
+			degrees=-9.0f*cos(PI*clockTime/pendulum_t+pendulum_phase);
 			break;
 			case id_pendulum_grab:
-			degrees=-9.0f*cos(PI*time/pendulum_t+pendulum_phase)+14.0f;
+			degrees=-9.0f*cos(PI*clockTime/pendulum_t+pendulum_phase)+pendulum_grab_shift;
 
 		}
 		model = glm::translate(model, rotationAxis);
