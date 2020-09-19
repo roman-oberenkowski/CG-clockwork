@@ -73,7 +73,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//textures setup
 	stbi_set_flip_vertically_on_load(true);
 	//model loading
-	ourModel = new Model("clockfinal2");
+	ourModel = new Model("clock_textured2");
 	
 	glGenVertexArrays(1,&VAO_cube);
 	glBindVertexArray(VAO_cube);
