@@ -309,7 +309,7 @@ glm::mat4 getModelMatrix(int id){
 	glm::mat4 model(1.0f);
 	glm::vec3 rotationAxis(1000.0f,0.0f,0.0f);
 	if(id==20){
-		model=glm::translate(model,glm::vec3(0.0f,0.0f,-0.004f));
+		model=glm::translate(model,glm::vec3(0.0f,0.0f,-0.002f));
 		return model;
 	}
 	switch(id){
