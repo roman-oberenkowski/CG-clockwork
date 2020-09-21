@@ -1,4 +1,4 @@
-
+//modified file from tutorial learnopengl.com
 
 #ifndef MODEL_H
 #define MODEL_H
