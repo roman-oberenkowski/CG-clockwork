@@ -142,7 +142,7 @@ private:
         glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 
         glBindVertexArray(0);
-        cout<<"[Mesh] loaded "<<textures.size()<<" textures"<<endl;
+        //cout<<"[Mesh] loaded "<<textures.size()<<" textures"<<endl;
     }
 };
 #endif
