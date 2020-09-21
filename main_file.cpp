@@ -121,7 +121,7 @@ void drawScene(GLFWwindow* window) {
 	light->use();
 	light_model_mat = glm::mat4(1.0f);
 	light_model_mat = glm::translate(light_model_mat, lightPos);
-	light_model_mat = glm::scale(light_model_mat, glm::vec3(0.2f)); 
+	light_model_mat = glm::scale(light_model_mat, glm::vec3(0.15)); 
 	light->setMat4("model",light_model_mat);
 	glBindVertexArray(VAO_light);
 	glDrawArrays(GL_TRIANGLES,0,36);
@@ -308,6 +308,10 @@ enum ID {
 glm::mat4 getModelMatrix(int id){
 	glm::mat4 model(1.0f);
 	glm::vec3 rotationAxis(1000.0f,0.0f,0.0f);
+	if(id==20){
+		model=glm::translate(model,glm::vec3(0.0f,0.0f,-0.004f));
+		return model;
+	}
 	switch(id){
 		case id_gearwheel_hours:
 		rotationAxis=glm::vec3(0.002392f,1.5636f,0.0f);
